@@ -28,7 +28,7 @@ export default function App() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-xl font-extrabold tracking-tight text-saffron-600">Yaar</h1>
+          <h1 className="text-xl font-extrabold tracking-tight text-saffron-600">Proto</h1>
           <span className="text-xs font-medium text-ink/40">spoken Hindi, the real way</span>
         </div>
         <div className="flex items-center gap-3 text-sm">

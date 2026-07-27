@@ -146,7 +146,7 @@ export default function SettingsView() {
       </Section>
 
       <p className="mt-6 text-center text-xs text-ink/30">
-        Yaar · everything saves locally on this device
+        Proto · everything saves locally on this device
       </p>
     </div>
   )
@@ -160,7 +160,7 @@ function InstallSection() {
 
   return (
     <Section
-      title="Install Yaar"
+      title="Install Proto"
       subtitle="Add it to your home screen — opens like an app and works offline"
     >
       {canInstall ? (

@@ -10,7 +10,7 @@ export default function Onboarding() {
       <div className="animate-pop-in">
         <p className="text-sm font-semibold uppercase tracking-widest text-saffron-500">Namaste 👋</p>
         <h1 className="mt-1 text-4xl font-extrabold tracking-tight text-ink">
-          Yaar<span className="text-saffron-500">.</span>
+          Proto<span className="text-saffron-500">.</span>
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-ink/70">
           Learn to speak Hindi the way people <em>actually</em> talk — casual, everyday, WhatsApp
