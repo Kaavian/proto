@@ -1,27 +1,41 @@
 import { useState } from 'react'
 import { useStore } from '../state/store.jsx'
 
+// Graded check: a single word → an everyday phrase → sentence structure.
+// Each is a real test (not self-report) and weighted, so the harder ones count more.
+// `hinglish: true` styles Hindi option text in the transliteration font.
 const PROFICIENCY_QUESTIONS = [
   {
-    id: 'rath',
-    type: 'binary',
-    question: "Do you understand the meaning of 'Rath'?",
-    hint: '(It\'s a common Hindi word)',
-  },
-  {
-    id: 'samajh',
-    type: 'binary',
-    question: "Do you understand the meaning of 'Samajh Gaya'?",
-    hint: '(It\'s used often in conversations)',
-  },
-  {
-    id: 'acha',
-    type: 'multiple',
-    question: "What does 'Acha' mean?",
+    id: 'word',
+    weight: 1,
+    question: "What does 'kal' mean?",
+    hint: 'A word you hear every day.',
     options: [
-      { value: 'correct', label: 'Okay / Alright' },
-      { value: 'wrong1', label: 'Come' },
-      { value: 'wrong2', label: 'Run' },
+      { value: 'a', label: 'Tomorrow (or yesterday)', correct: true },
+      { value: 'b', label: 'Today' },
+      { value: 'c', label: 'Now' },
+    ],
+  },
+  {
+    id: 'phrase',
+    weight: 2,
+    question: "Someone asks you 'khana khaya?' — what are they asking?",
+    hint: 'A very common everyday phrase.',
+    options: [
+      { value: 'a', label: 'Did you eat?', correct: true },
+      { value: 'b', label: 'Are you coming?' },
+      { value: 'c', label: 'Where are you going?' },
+    ],
+  },
+  {
+    id: 'sentence',
+    weight: 3,
+    question: "Which one correctly says 'I want water'?",
+    hint: 'Look at how the words are put together.',
+    options: [
+      { value: 'a', label: 'Mujhe paani chahiye', correct: true, hinglish: true },
+      { value: 'b', label: 'Main paani chahiye', hinglish: true },
+      { value: 'c', label: 'Paani mujhe hoon chahiye', hinglish: true },
     ],
   },
 ]
@@ -46,13 +60,15 @@ export default function Onboarding() {
   }
 
   function calculateProficiency() {
-    let correct = 0
-    if (answers.rath === 'yes') correct++
-    if (answers.samajh === 'yes') correct++
-    if (answers.acha === 'correct') correct++
-
-    // Cap at 25%: recognising words doesn't mean you can build sentences yet.
-    return Math.round((correct / 3) * 25)
+    let score = 0
+    let maxScore = 0
+    for (const q of PROFICIENCY_QUESTIONS) {
+      maxScore += q.weight
+      const chosen = q.options.find((o) => o.value === answers[q.id])
+      if (chosen?.correct) score += q.weight
+    }
+    // Cap at 25%: recognising words/phrases doesn't mean you can build sentences yet.
+    return Math.round((score / maxScore) * 25)
   }
 
   function handleFinishAssessment() {
@@ -141,47 +157,21 @@ export default function Onboarding() {
                   {q.hint && <p className="mt-1 text-sm text-ink/50">{q.hint}</p>}
 
                   <div className="mt-3 space-y-2">
-                    {q.type === 'binary' && (
-                      <>
-                        <button
-                          onClick={() => handleAnswer(q.id, 'yes')}
-                          className={`w-full rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-all ${
-                            answers[q.id] === 'yes'
-                              ? 'border-saffron-500 bg-saffron-50 text-saffron-600'
-                              : 'border-ink/10 bg-white text-ink/70 hover:border-ink/20'
-                          }`}
-                        >
-                          Yes, I understand it
-                        </button>
-                        <button
-                          onClick={() => handleAnswer(q.id, 'no')}
-                          className={`w-full rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-all ${
-                            answers[q.id] === 'no'
-                              ? 'border-ink/30 bg-ink/5 text-ink'
-                              : 'border-ink/10 bg-white text-ink/70 hover:border-ink/20'
-                          }`}
-                        >
-                          No, I don't know it
-                        </button>
-                      </>
-                    )}
-                    {q.type === 'multiple' && (
-                      <>
-                        {q.options.map((opt) => (
-                          <button
-                            key={opt.value}
-                            onClick={() => handleAnswer(q.id, opt.value)}
-                            className={`w-full rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-all ${
-                              answers[q.id] === opt.value
-                                ? 'border-saffron-500 bg-saffron-50 text-saffron-600'
-                                : 'border-ink/10 bg-white text-ink/70 hover:border-ink/20'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </>
-                    )}
+                    {q.options.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleAnswer(q.id, opt.value)}
+                        className={`w-full rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-all ${
+                          opt.hinglish ? 'hinglish' : ''
+                        } ${
+                          answers[q.id] === opt.value
+                            ? 'border-saffron-500 bg-saffron-50 text-saffron-600'
+                            : 'border-ink/10 bg-white text-ink/70 hover:border-ink/20'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
               ))}
