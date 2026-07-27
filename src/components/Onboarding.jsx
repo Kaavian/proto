@@ -47,16 +47,12 @@ export default function Onboarding() {
 
   function calculateProficiency() {
     let correct = 0
-    // Check rath (binary) — assuming user knows it means 'night'
     if (answers.rath === 'yes') correct++
-    // Check samajh (binary) — assuming user knows it means 'understood'
     if (answers.samajh === 'yes') correct++
-    // Check acha (multiple choice) — correct answer is 'correct'
     if (answers.acha === 'correct') correct++
 
-    // Map score to proficiency, capped at 25%
-    const proficiency = (correct / 3) * 25
-    return Math.round(proficiency)
+    // Cap at 25%: recognising words doesn't mean you can build sentences yet.
+    return Math.round((correct / 3) * 25)
   }
 
   function handleFinishAssessment() {
