@@ -173,7 +173,7 @@ export async function translate(input, settings) {
     systemPrompt: buildTranslationSystemPrompt(settings),
     contents: [{ role: 'user', parts: [{ text: input }] }],
     temperature: 0.7,
-    maxOutputTokens: 1200,
+    maxOutputTokens: 2048,
   })
   // Normalise shape defensively.
   return {
@@ -207,7 +207,7 @@ export async function chatWithBuddy(history, settings, { kickoff = false, progre
     systemPrompt: buildLearningSystemPrompt(settings, progress),
     contents,
     temperature: 0.9,
-    maxOutputTokens: 700,
+    maxOutputTokens: 1200,
   })
 
   const messages = Array.isArray(result.messages)
