@@ -1,9 +1,9 @@
-# Yaar — spoken Hindi for Tamil speakers
+# Proto — spoken Hindi for Tamil speakers
 
 A two-mode web app for learning **natural, colloquial Hindi** (written in Roman "Hinglish"):
 
 - **Translate** — English → real spoken Hindi, with a word-by-word breakdown and a "how it's built" note that explains the reordering (verb-at-end, postpositions, gender agreement).
-- **Chat** — a friendly Hindi "buddy" (a _yaar_) who has everyday WhatsApp-style conversations, offers a graded **hint ladder**, and corrects mistakes in a way that's funny-but-kind, never a red pen.
+- **Chat** — a friendly Hindi buddy who has everyday WhatsApp-style conversations, offers a graded **hint ladder**, and corrects mistakes in a way that's funny-but-kind, never a red pen.
 
 Plus a **Vocabulary** tab (with a new/learning/known familiarity counter), a daily **streak**, and **Settings** (speaker gender, politeness, correction intensity, keep-in-English list, API key). Everything is stored locally in the browser — no accounts, no cloud.
 

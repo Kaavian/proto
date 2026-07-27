@@ -1,9 +1,9 @@
 {
-  "name": "yaar",
+  "name": "proto",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Yaar — a Hindi-learning web app for Tamil speakers",
+  "description": "Proto — a Hindi-learning web app for Tamil speakers",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
