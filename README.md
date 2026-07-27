@@ -68,29 +68,22 @@ function ([api/gemini.js](api/gemini.js)) reads `GEMINI_API_KEY` and forwards re
 - Otherwise, a **production build** posts to `/api/gemini`, which supplies the shared key.
   So distributed users need no key at all.
 
-### Steps
+### Steps — GitHub → Vercel (auto-deploys on every push)
 
-```bash
-npm i -g vercel          # once
-vercel                   # from the project root — links/creates the project (no GitHub needed)
-```
-
-Then set the secret and ship:
-
-1. **Add the key** (server-only — do NOT prefix with `VITE_`):
+1. **Push to GitHub** (private repo is fine — Vercel deploys private repos on the free tier):
    ```bash
-   vercel env add GEMINI_API_KEY
+   gh auth login
+   gh repo create yaar --private --source=. --remote=origin --push
    ```
-   Paste your Google AI Studio key when prompted; choose the Production (and Preview) environments.
-   Or add it in the Vercel dashboard → Project → Settings → Environment Variables.
-2. **Deploy to production:**
-   ```bash
-   vercel --prod
-   ```
+   (Or create an empty repo on github.com, then `git remote add origin <url>` and `git push -u origin main`.)
+2. **Import in Vercel:** vercel.com → **Add New → Project** → import the `yaar` repo. Vercel
+   auto-detects Vite (build `npm run build`, output `dist/`) and serves `api/gemini.js` as a
+   function — no `vercel.json` needed.
+3. **Add the key** in Project → Settings → **Environment Variables**: `GEMINI_API_KEY` =
+   your Google AI Studio key (server-only — do NOT prefix with `VITE_`; enable Production + Preview).
+4. **Deploy.** After this, every `git push` redeploys automatically.
 
-Vercel auto-detects Vite (builds to `dist/`) and serves `api/gemini.js` as a function — no
-`vercel.json` needed. To test the proxy locally, run `vercel dev` (plain `npm run preview`
-won't have the function).
+To test the proxy locally, run `vercel dev` (plain `npm run preview` won't have the function).
 
 > **Shared quota / abuse:** everyone using the link shares your free 1,500 requests/day, and
 > anyone with the URL can use it. Fine for a circle of friends. If the link leaks, add a simple
