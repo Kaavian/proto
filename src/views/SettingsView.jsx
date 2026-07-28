@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useUser, useClerk } from '@clerk/react'
 import { useStore } from '../state/store.jsx'
 import { DEFAULT_KEEP_IN_ENGLISH } from '../lib/defaults.js'
+import { authEnabled } from '../lib/auth.js'
 import { useInstall } from '../hooks/useInstall.js'
 
 export default function SettingsView() {
@@ -25,6 +27,7 @@ export default function SettingsView() {
 
   return (
     <div className="scroll-slim h-full overflow-y-auto px-4 pb-8 pt-3">
+      {authEnabled() && <AccountSection />}
       <InstallSection />
 
       {/* API key */}
@@ -149,6 +152,44 @@ export default function SettingsView() {
         Proto · everything saves locally on this device
       </p>
     </div>
+  )
+}
+
+// Only mounted when auth is enabled, so it always sits inside <ClerkProvider>.
+function AccountSection() {
+  const { isLoaded, isSignedIn, user } = useUser()
+  const { signOut } = useClerk()
+
+  if (!isLoaded) return null
+
+  if (!isSignedIn) {
+    return (
+      <Section title="Account" subtitle="Sign in to save your progress">
+        <p className="rounded-xl bg-white px-3.5 py-3 text-[13px] leading-relaxed text-ink/60 ring-1 ring-ink/10">
+          Head to the <span className="font-semibold text-ink/80">Chat</span> tab to sign in with
+          your phone number. Your proficiency then saves to your account and follows you across
+          devices.
+        </p>
+      </Section>
+    )
+  }
+
+  const phone = user?.primaryPhoneNumber?.phoneNumber || 'your account'
+  return (
+    <Section title="Account" subtitle="Your progress is saved here">
+      <div className="flex items-center justify-between rounded-xl bg-white px-3.5 py-3 ring-1 ring-ink/10">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-ink">Signed in</p>
+          <p className="truncate text-[13px] text-ink/50">{phone}</p>
+        </div>
+        <button
+          onClick={() => signOut()}
+          className="shrink-0 rounded-full border border-ink/15 px-3.5 py-1.5 text-[13px] font-semibold text-ink/60 transition-colors hover:border-red-200 hover:text-red-500"
+        >
+          Sign out
+        </button>
+      </div>
+    </Section>
   )
 }
 

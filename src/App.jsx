@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useStore } from './state/store.jsx'
+import { authEnabled } from './lib/auth.js'
 import Onboarding from './components/Onboarding.jsx'
+import AccountSync from './components/AccountSync.jsx'
 import TranslateView from './views/TranslateView.jsx'
 import LearnView from './views/LearnView.jsx'
 import VocabView from './views/VocabView.jsx'
@@ -25,6 +27,9 @@ export default function App() {
 
   return (
     <div className="mx-auto flex h-full max-w-lg flex-col bg-cream">
+      {/* Keeps the signed-in account's proficiency in sync with the store. */}
+      {authEnabled() && <AccountSync />}
+
       {/* Header */}
       <header className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="flex items-baseline gap-2">

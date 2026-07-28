@@ -10,6 +10,7 @@
     "preview": "vite preview --port 4173 --strictPort"
   },
   "dependencies": {
+    "@clerk/react": "^6.12.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useUser } from '@clerk/react'
 import { useStore } from '../state/store.jsx'
 import { chatWithBuddy, GeminiError, aiAvailable } from '../lib/gemini.js'
 import { loadChat, saveChat, clearChat, newId } from '../lib/storage.js'
+import { authEnabled } from '../lib/auth.js'
 import ApiKeyBanner from '../components/ApiKeyBanner.jsx'
+import ChatLoginGate from '../components/ChatLoginGate.jsx'
 import { SendIcon, BookmarkIcon, SparkIcon } from '../components/Icons.jsx'
 
 const HINTS = [
@@ -11,7 +14,28 @@ const HINTS = [
   { label: '🙃 Just tell me', send: '[JUST TELL ME]', display: '🙃 just tell me' },
 ]
 
-export default function LearnView({ goTo }) {
+// Chat requires a signed-in account when auth is enabled; Translation never does.
+// When auth is off (no Clerk key), chat is open exactly as before.
+export default function LearnView(props) {
+  if (!authEnabled()) return <ChatExperience {...props} />
+  return <ChatGate {...props} />
+}
+
+// Only rendered when auth is enabled, so it always sits inside <ClerkProvider>.
+function ChatGate(props) {
+  const { isLoaded, isSignedIn } = useUser()
+  if (!isLoaded) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-saffron-500 border-t-transparent" />
+      </div>
+    )
+  }
+  if (!isSignedIn) return <ChatLoginGate />
+  return <ChatExperience {...props} />
+}
+
+function ChatExperience({ goTo }) {
   const { settings, addVocab, isSaved, reinforceUsedWords, markActivity, proficiency, adjustProficiency } =
     useStore()
   const [messages, setMessages] = useState(() => loadChat()?.messages || [])

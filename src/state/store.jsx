@@ -50,6 +50,12 @@ export function StoreProvider({ children }) {
     setProgress((p) => ({ ...p, proficiency: clamp((p.proficiency || 0) + delta, 0, 100) }))
   }, [])
 
+  // Set proficiency to an absolute value — used when a signed-in account's saved
+  // proficiency is adopted as the source of truth (see AccountSync).
+  const setProficiency = useCallback((value) => {
+    setProgress((p) => ({ ...p, proficiency: clamp(value, 0, 100) }))
+  }, [])
+
   // ---- Vocabulary ----
   const isSaved = useCallback(
     (hinglish) => vocab.some((v) => norm(v.hinglish) === norm(hinglish)),
@@ -125,6 +131,7 @@ export function StoreProvider({ children }) {
       wordsLearned,
       proficiency: progress.proficiency,
       adjustProficiency,
+      setProficiency,
     }),
     [
       settings,
@@ -142,6 +149,7 @@ export function StoreProvider({ children }) {
       wordsLearned,
       progress.proficiency,
       adjustProficiency,
+      setProficiency,
     ],
   )
 

@@ -94,6 +94,47 @@ endpoint + request shape in `api/gemini.js`; the prompts are model-neutral.
 
 ---
 
+## Accounts — phone-number login (Chat only)
+
+**Translation needs no account.** **Chat** requires a signed-in user so proficiency is tied to
+the account (not just the device) and follows the learner across devices. Auth is powered by
+**[Clerk](https://clerk.com)** with **phone-number + SMS OTP** login. Clerk supplies the SMS —
+no separate SMS vendor to wire up.
+
+Auth is **optional at the code level**: with no Clerk key configured the app runs exactly as
+before (Translation works, Chat is open). It only turns on once `VITE_CLERK_PUBLISHABLE_KEY` is set
+([src/lib/auth.js](src/lib/auth.js) `authEnabled()`).
+
+### How proficiency is stored
+
+- The hidden proficiency score lives in the account as Clerk **`user.unsafeMetadata.proficiency`**
+  (writable from the browser — fine here; it's not a security boundary). No separate database.
+- **First login migrates the local score up** to the account; after that the **account is the
+  source of truth** and later buddy nudges are pushed back to it
+  ([src/components/AccountSync.jsx](src/components/AccountSync.jsx)).
+- **Vocab, streak, and chat history stay on-device** (localStorage) for now — syncing those
+  cross-device would need real per-row storage (a `profiles` table / Clerk is too small for a
+  growing vocab list). Clean follow-up.
+
+### Setup
+
+1. **Create a Clerk app** at [dashboard.clerk.com](https://dashboard.clerk.com).
+2. **Enable phone auth:** User & Authentication → **Email, Phone, Username** → turn **Phone number**
+   **on** (as an identifier) and enable **SMS verification code**. You can turn Email off if you
+   want phone-only.
+3. **Copy the Publishable key** (Dashboard → **API Keys**, starts with `pk_`).
+4. **Local dev:** copy `.env.example` → `.env.local` and set
+   `VITE_CLERK_PUBLISHABLE_KEY=pk_...`, then `npm run dev`. Clerk offers **test phone numbers**
+   (e.g. `+15555550100`, code `424242`) so you don't spend real SMS while developing.
+5. **Vercel:** add `VITE_CLERK_PUBLISHABLE_KEY` as an Environment Variable (Production + Preview).
+   Unlike the Gemini key this one **is** browser-exposed, so the `VITE_` prefix is correct. Also add
+   your deployed domain under Clerk → **Domains**.
+
+> **SMS costs:** live SMS OTP is billed per message once you're past Clerk's free allowance — check
+> current Clerk pricing. Test numbers are free.
+
+---
+
 ## PWA (Phase 2 — done)
 
 Yaar installs to the home screen and opens offline.
