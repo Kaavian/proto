@@ -9,7 +9,7 @@
 //    to the network, and fail loudly offline, which is the correct behavior.
 //
 // Bump CACHE_VERSION to force old caches out on the next activate.
-const CACHE_VERSION = 'proto-v2'
+const CACHE_VERSION = 'proto-v3'
 const SHELL = [
   '/',
   '/index.html',
