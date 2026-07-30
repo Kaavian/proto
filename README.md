@@ -98,8 +98,8 @@ endpoint + request shape in `api/gemini.js`; the prompts are model-neutral.
 
 **Translation needs no account.** **Chat** requires a signed-in user so proficiency is tied to
 the account (not just the device) and follows the learner across devices. Auth is powered by
-**[Clerk](https://clerk.com)** with **phone-number + SMS OTP** login. Clerk supplies the SMS —
-no separate SMS vendor to wire up.
+**[Clerk](https://clerk.com)** with **Google sign-in** — one tap, no passwords, and **free** on
+Clerk's Hobby plan (SMS/phone OTP is a paid Pro feature with per-message fees, so we skip it).
 
 Auth is **optional at the code level**: with no Clerk key configured the app runs exactly as
 before (Translation works, Chat is open). It only turns on once `VITE_CLERK_PUBLISHABLE_KEY` is set
@@ -119,19 +119,22 @@ before (Translation works, Chat is open). It only turns on once `VITE_CLERK_PUBL
 ### Setup
 
 1. **Create a Clerk app** at [dashboard.clerk.com](https://dashboard.clerk.com).
-2. **Enable phone auth:** User & Authentication → **Email, Phone, Username** → turn **Phone number**
-   **on** (as an identifier) and enable **SMS verification code**. You can turn Email off if you
-   want phone-only.
+2. **Enable Google sign-in:** User & Authentication → **SSO Connections** → turn on **Google**.
+   Clerk provides shared dev credentials so it works immediately in development; for production add
+   your own Google OAuth credentials (Clerk shows the steps). You can turn Email/password off if you
+   want Google-only.
 3. **Copy the Publishable key** (Dashboard → **API Keys**, starts with `pk_`).
 4. **Local dev:** copy `.env.example` → `.env.local` and set
-   `VITE_CLERK_PUBLISHABLE_KEY=pk_...`, then `npm run dev`. Clerk offers **test phone numbers**
-   (e.g. `+15555550100`, code `424242`) so you don't spend real SMS while developing.
+   `VITE_CLERK_PUBLISHABLE_KEY=pk_...`, then `npm run dev`.
 5. **Vercel:** add `VITE_CLERK_PUBLISHABLE_KEY` as an Environment Variable (Production + Preview).
    Unlike the Gemini key this one **is** browser-exposed, so the `VITE_` prefix is correct. Also add
    your deployed domain under Clerk → **Domains**.
 
-> **SMS costs:** live SMS OTP is billed per message once you're past Clerk's free allowance — check
-> current Clerk pricing. Test numbers are free.
+> **Why Google, not SMS:** Google sign-in is free on Clerk's Hobby plan. Phone/SMS OTP requires
+> Clerk Pro (~$20/mo) plus per-SMS fees, and no provider offers free production SMS OTP (every text
+> has a real carrier cost) — so Google is the zero-cost path to account-based proficiency. Swapping
+> in email OTP or adding more social providers later is a dashboard toggle; the app code is
+> sign-in-method-agnostic.
 
 ---
 

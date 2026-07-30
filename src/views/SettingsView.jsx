@@ -167,20 +167,23 @@ function AccountSection() {
       <Section title="Account" subtitle="Sign in to save your progress">
         <p className="rounded-xl bg-white px-3.5 py-3 text-[13px] leading-relaxed text-ink/60 ring-1 ring-ink/10">
           Head to the <span className="font-semibold text-ink/80">Chat</span> tab to sign in with
-          your phone number. Your proficiency then saves to your account and follows you across
-          devices.
+          Google. Your proficiency then saves to your account and follows you across devices.
         </p>
       </Section>
     )
   }
 
-  const phone = user?.primaryPhoneNumber?.phoneNumber || 'your account'
+  const label =
+    user?.primaryEmailAddress?.emailAddress ||
+    user?.fullName ||
+    user?.primaryPhoneNumber?.phoneNumber ||
+    'your account'
   return (
     <Section title="Account" subtitle="Your progress is saved here">
       <div className="flex items-center justify-between rounded-xl bg-white px-3.5 py-3 ring-1 ring-ink/10">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-ink">Signed in</p>
-          <p className="truncate text-[13px] text-ink/50">{phone}</p>
+          <p className="truncate text-[13px] text-ink/50">{label}</p>
         </div>
         <button
           onClick={() => signOut()}
