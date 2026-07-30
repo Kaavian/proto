@@ -159,6 +159,13 @@ async function callGemini({
     })
   }
   const text = candidate?.content?.parts?.map((p) => p.text || '').join('') || ''
+  // MAX_TOKENS means the model ran out of budget mid-answer (often because "thinking"
+  // consumed it) — the JSON is truncated and won't parse. Give a clear, distinct message.
+  if (finish === 'MAX_TOKENS') {
+    throw new GeminiError('The reply got cut off before it finished. Please try again.', {
+      kind: 'parse',
+    })
+  }
   if (!text) {
     throw new GeminiError('Empty response from the model. Try again.', { kind: 'parse' })
   }
@@ -207,7 +214,11 @@ export async function chatWithBuddy(history, settings, { kickoff = false, progre
     systemPrompt: buildLearningSystemPrompt(settings, progress),
     contents,
     temperature: 0.9,
-    maxOutputTokens: 1200,
+    // Headroom for the JSON answer, plus a cap on "thinking" so it can't eat the whole
+    // budget and truncate the reply (the cause of "could not read the model response").
+    // Casual chat needs far less reasoning than translation, so a modest cap is safe.
+    maxOutputTokens: 2048,
+    thinkingBudget: 1024,
   })
 
   const messages = Array.isArray(result.messages)
