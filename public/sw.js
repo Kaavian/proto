@@ -1,4 +1,4 @@
-// Yaar service worker — offline app-shell caching (Phase 2 / M6).
+// Proto service worker — offline app-shell caching (Phase 2 / M6).
 //
 // Strategy (no build step, no Workbox — keeps the app dependency-light):
 //  - Precache the stable shell URLs on install (index, manifest, icons).
@@ -9,7 +9,7 @@
 //    to the network, and fail loudly offline, which is the correct behavior.
 //
 // Bump CACHE_VERSION to force old caches out on the next activate.
-const CACHE_VERSION = 'yaar-v1'
+const CACHE_VERSION = 'proto-v2'
 const SHELL = [
   '/',
   '/index.html',
