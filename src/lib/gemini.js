@@ -213,7 +213,10 @@ export async function chatWithBuddy(history, settings, { kickoff = false, progre
     model: settings.model,
     systemPrompt: buildLearningSystemPrompt(settings, progress),
     contents,
-    temperature: 0.9,
+    // 0.6 (was 0.9): high randomness made the buddy overshoot the target Hindi ratio
+    // and lean on its "Hindi buddy" instinct. Lower temp = tighter adherence to the
+    // LANGUAGE MIX rule, while still sounding natural.
+    temperature: 0.6,
     // Headroom for the JSON answer, plus a cap on "thinking" so it can't eat the whole
     // budget and truncate the reply (the cause of "could not read the model response").
     // Casual chat needs far less reasoning than translation, so a modest cap is safe.
@@ -234,9 +237,14 @@ export async function chatWithBuddy(history, settings, { kickoff = false, progre
         }
       : null
 
-  // Hidden signal: clamp to the promised range so a rogue value can't swing the score.
-  let progressDelta = Number(result?.assessment?.progress_delta)
-  progressDelta = Number.isFinite(progressDelta) ? Math.max(-2, Math.min(3, Math.round(progressDelta))) : 0
+  // Hidden signal that nudges the learner's proficiency. Two guards against runaway drift:
+  //  1. Symmetric clamp (-3..+3, was -2..+3) so the score isn't biased upward.
+  //  2. Damping factor so a single turn moves it only a little — proficiency climbs
+  //     slowly and honestly over many turns instead of jumping into "mostly Hindi".
+  const PROGRESS_DAMP = 0.4
+  let raw = Number(result?.assessment?.progress_delta)
+  raw = Number.isFinite(raw) ? Math.max(-3, Math.min(3, Math.round(raw))) : 0
+  const progressDelta = raw * PROGRESS_DAMP
 
   return {
     bubbles: messages.length ? messages : ['(hmm, kuch garbar hui — ek baar phir bolo?)'],

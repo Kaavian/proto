@@ -6,7 +6,7 @@ import { authEnabled } from '../lib/auth.js'
 import { useInstall } from '../hooks/useInstall.js'
 
 export default function SettingsView() {
-  const { settings, updateSettings } = useStore()
+  const { settings, updateSettings, proficiency, setProficiency } = useStore()
   const [newWord, setNewWord] = useState('')
   const [showKey, setShowKey] = useState(false)
 
@@ -65,6 +65,36 @@ export default function SettingsView() {
           Add your own key only to use your personal Gemini quota; it's stored just in this browser
           and sent straight to Google. (Running locally without the server, a key here is required.)
         </p>
+      </Section>
+
+      {/* Chat Hindi level — manual override of the (normally hidden) proficiency score */}
+      <Section
+        title="Chat Hindi level"
+        subtitle="How much Hindi your buddy speaks. It adapts as you improve — nudge it if it feels off."
+      >
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={Math.round(proficiency)}
+          onChange={(e) => setProficiency(Number(e.target.value))}
+          className="w-full accent-saffron-500"
+          aria-label="How much Hindi the buddy speaks"
+        />
+        <div className="mt-1 flex items-center justify-between text-[12px] text-ink/45">
+          <span>All English</span>
+          <span className="font-semibold text-saffron-600">≈ {Math.round(proficiency)}% Hindi</span>
+          <span>All Hindi</span>
+        </div>
+        {Math.round(proficiency) > 0 && (
+          <button
+            onClick={() => setProficiency(0)}
+            className="mt-2 text-[13px] font-semibold text-ink/40 hover:text-ink/60"
+          >
+            Reset to all-English
+          </button>
+        )}
       </Section>
 
       {/* Speaker gender */}
