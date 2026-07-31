@@ -72,7 +72,13 @@ function ChatExperience({ goTo }) {
         const reply = await chatWithBuddy(convo, settings, { ...opts, progress: { proficiency } })
         setMessages((m) => [
           ...m,
-          { id: newId(), role: 'buddy', bubbles: reply.bubbles, correction: reply.correction },
+          {
+            id: newId(),
+            role: 'buddy',
+            bubbles: reply.bubbles,
+            correction: reply.correction,
+            breakdown: reply.breakdown,
+          },
         ])
         markActivity()
         adjustProficiency(reply.progressDelta) // silent background tracking
@@ -299,6 +305,59 @@ function BuddyTurn({ msg, onSave, isSaved }) {
         </div>
       ))}
       {msg.correction && <CorrectionCard c={msg.correction} onSave={() => onSave(msg.correction.fix)} saved={isSaved(msg.correction.fix)} />}
+      {msg.breakdown && (
+        <BreakdownCard b={msg.breakdown} onSave={() => onSave(msg.breakdown.hindi)} saved={isSaved(msg.breakdown.hindi)} />
+      )}
+    </div>
+  )
+}
+
+// Tamil-anchored "how do I say" card: the Hindi answer, its Tamil parallel, a word-by-word
+// Hindi<->Tamil map, and why the two are structurally similar.
+function BreakdownCard({ b, onSave, saved }) {
+  return (
+    <div className="mt-1 w-full max-w-[92%] animate-pop-in rounded-2xl border border-saffron-200 bg-white p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-saffron-600">
+          <SparkIcon width={14} height={14} /> How to say it
+        </p>
+        <button
+          onClick={onSave}
+          disabled={saved}
+          className={`flex items-center gap-1 text-xs font-semibold ${saved ? 'text-saffron-500' : 'text-saffron-600 hover:text-saffron-700'}`}
+        >
+          <BookmarkIcon width={14} height={14} filled={saved} />
+          {saved ? 'Saved' : 'Save'}
+        </button>
+      </div>
+
+      {b.english && <p className="mt-1.5 text-[13px] italic text-ink/45">“{b.english}”</p>}
+
+      <p className="hinglish mt-1 text-xl font-bold leading-tight text-ink">{b.hindi}</p>
+      {b.tamil && (
+        <p className="mt-1 text-[14px] text-ink/60">
+          <span className="mr-1 text-[11px] font-bold uppercase tracking-wide text-emerald-600">Tamil</span>
+          {b.tamil}
+        </p>
+      )}
+
+      {b.pairs.length > 0 && (
+        <ul className="mt-2.5 divide-y divide-ink/5 border-t border-ink/5">
+          {b.pairs.map((p, i) => (
+            <li key={i} className="flex items-baseline gap-2 py-1.5 text-[13px]">
+              <span className="hinglish min-w-0 flex-1 font-semibold text-ink">{p.hindi}</span>
+              <span className="min-w-0 flex-1 text-emerald-700">{p.tamil}</span>
+              <span className="min-w-0 flex-1 text-right text-ink/50">{p.means}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {b.similarity && (
+        <p className="mt-2 rounded-lg bg-emerald-50/70 px-2.5 py-2 text-[13px] leading-relaxed text-emerald-900/80">
+          {b.similarity}
+        </p>
+      )}
     </div>
   )
 }

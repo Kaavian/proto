@@ -67,10 +67,10 @@ export default function SettingsView() {
         </p>
       </Section>
 
-      {/* Chat Hindi level — manual override of the (normally hidden) proficiency score */}
+      {/* How forward the buddy is with Hindi — manual override of the (hidden) proficiency score */}
       <Section
-        title="Chat Hindi level"
-        subtitle="How much Hindi your buddy speaks. It adapts as you improve — nudge it if it feels off."
+        title="How much Hindi to bring in"
+        subtitle="How forward your buddy is with Hindi. It adapts as you improve — nudge it if it feels off."
       >
         <input
           type="range"
@@ -80,19 +80,19 @@ export default function SettingsView() {
           value={Math.round(proficiency)}
           onChange={(e) => setProficiency(Number(e.target.value))}
           className="w-full accent-saffron-500"
-          aria-label="How much Hindi the buddy speaks"
+          aria-label="How forward the buddy is with Hindi"
         />
         <div className="mt-1 flex items-center justify-between text-[12px] text-ink/45">
-          <span>All English</span>
-          <span className="font-semibold text-saffron-600">≈ {Math.round(proficiency)}% Hindi</span>
-          <span>All Hindi</span>
+          <span>Only when I ask</span>
+          <span className="font-semibold text-saffron-600">{forwardnessLabel(proficiency)}</span>
+          <span>Push me hard</span>
         </div>
         {Math.round(proficiency) > 0 && (
           <button
             onClick={() => setProficiency(0)}
             className="mt-2 text-[13px] font-semibold text-ink/40 hover:text-ink/60"
           >
-            Reset to all-English
+            Reset to English-only
           </button>
         )}
       </Section>
@@ -252,6 +252,15 @@ function InstallSection() {
       )}
     </Section>
   )
+}
+
+// Short descriptor for how forward the buddy is with Hindi (0–100 proficiency).
+function forwardnessLabel(level) {
+  const n = Math.round(level)
+  if (n <= 0) return 'Only when I ask'
+  if (n < 30) return 'A little'
+  if (n < 60) return 'A fair bit'
+  return 'A lot'
 }
 
 function Section({ title, subtitle, children }) {

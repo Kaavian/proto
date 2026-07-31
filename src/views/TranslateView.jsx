@@ -141,6 +141,14 @@ export default function TranslateView({ goTo }) {
                 <p className="hinglish mt-1 text-2xl font-bold leading-tight text-ink">
                   {result.hindi}
                 </p>
+                {result.tamil_parallel && (
+                  <p className="mt-1.5 text-[14px] text-ink/60">
+                    <span className="mr-1 text-[11px] font-bold uppercase tracking-wide text-emerald-600">
+                      Tamil
+                    </span>
+                    {result.tamil_parallel}
+                  </p>
+                )}
               </div>
               <SaveButton
                 saved={savedSentence || isSaved(result.hindi)}

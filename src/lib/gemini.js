@@ -187,6 +187,7 @@ export async function translate(input, settings) {
     hindi: result.hindi || '',
     aap_version: result.aap_version || null,
     words: Array.isArray(result.words) ? result.words : [],
+    tamil_parallel: result.tamil_parallel || '',
     structure_note: result.structure_note || '',
     already_hindi: !!result.already_hindi,
   }
@@ -246,9 +247,27 @@ export async function chatWithBuddy(history, settings, { kickoff = false, progre
   raw = Number.isFinite(raw) ? Math.max(-3, Math.min(3, Math.round(raw))) : 0
   const progressDelta = raw * PROGRESS_DAMP
 
+  // Tamil-anchored teaching card ("how do I say…"). Present only on teaching turns.
+  const b = result.breakdown
+  const breakdown =
+    b && b.hindi
+      ? {
+          english: b.english || '',
+          hindi: b.hindi || '',
+          tamil: b.tamil || '',
+          pairs: Array.isArray(b.pairs)
+            ? b.pairs
+                .filter((p) => p && (p.hindi || p.tamil))
+                .map((p) => ({ hindi: p.hindi || '', tamil: p.tamil || '', means: p.means || '' }))
+            : [],
+          similarity: b.similarity || '',
+        }
+      : null
+
   return {
     bubbles: messages.length ? messages : ['(hmm, kuch garbar hui — ek baar phir bolo?)'],
     correction,
+    breakdown,
     progressDelta,
   }
 }
