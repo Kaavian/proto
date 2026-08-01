@@ -193,7 +193,8 @@ OUTPUT FORMAT — respond with ONLY a JSON object (no markdown, no code fences),
     "pairs": [ { "hindi": "mujhe", "tamil": "enakku", "means": "to me" } ],
     "similarity": "1-2 short lines: the shared structure (verb at end, to-me subject, word order ~1:1) and any Hindi-only twist (e.g. gender agreement) Tamil doesn't have"
   } | null,
-  "assessment": { "progress_delta": <integer from -3 to 3> }
+  "assessment": { "progress_delta": <integer from -3 to 3> },
+  "recap": "one short line (<=12 words): what you two have been chatting about + any Hindi they practiced"
 }
 Rules for the JSON:
 - "messages" are natural chat bubbles in your real voice, in ENGLISH — keep them short, 1 to 4 bursts.
@@ -215,6 +216,9 @@ Rules for the JSON:
     -1 = struggled / needed a hint;  -2 = stuck or asked to be told;  -3 = big misunderstanding.
   Only real, UNAIDED Hindi should raise it. Judge honestly and conservatively — when unsure, use 0.
   This quietly tunes how much Hindi you use next time.
+- "recap" is a rolling one-line summary of THIS conversation (the topics + any Hindi they practiced),
+  refreshed every turn from the whole chat so far. It's used privately later to make a friendly
+  check-in feel personal; it is NEVER shown in the chat. Keep it short, factual, and in English.
 - Always keep the conversation moving: after any correction or hint, your messages should
   end by asking something or handing the turn back.`
 }

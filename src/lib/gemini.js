@@ -270,11 +270,16 @@ export async function chatWithBuddy(history, settings, { kickoff = false, progre
         }
       : null
 
+  // One-line rolling summary of the chat, synced to the account so a later push ping can
+  // reference it ("last time you talked about…"). Trimmed defensively.
+  const recap = typeof result.recap === 'string' ? result.recap.trim().slice(0, 200) : ''
+
   return {
     bubbles: messages.length ? messages : ['(hmm, kuch garbar hui — ek baar phir bolo?)'],
     correction,
     breakdown,
     progressDelta,
+    recap,
   }
 }
 

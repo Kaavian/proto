@@ -18,6 +18,8 @@ import { createClerkClient } from '@clerk/backend'
 const WAKE_START = 9 // don't ping before 9:00 local
 const WAKE_END = 21 // ...or after 21:00 local
 const ACTIVE_SKIP_MS = 2 * 60 * 60 * 1000 // skip if they were in the app < 2h ago
+const RECAP_REF_CHANCE = 0.4 // only *sometimes* nod to the last chat, like a real friend
+const RECAP_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000 // ...and only if it's recent
 
 // Local hour + date in a given IANA timezone.
 function localParts(tz) {
@@ -46,7 +48,7 @@ function timeOfDay(hour) {
 
 // Generate a short, casual opener via Gemini. Falls back to a canned line on any error so a
 // ping still goes out.
-async function generateMessage({ firstName, hour }) {
+async function generateMessage({ firstName, hour, lastChat }) {
   const fallback = [
     'oye, kya chal raha hai? free for a quick chat? 😄',
     'hey! how’s your day going?',
@@ -57,12 +59,19 @@ async function generateMessage({ firstName, hour }) {
   if (!key) return fallback[Math.floor(Math.random() * fallback.length)]
 
   const nameLine = firstName ? `Their name is ${firstName}.` : ''
+  // Only sometimes, and only if the recap is recent, nod to the last conversation.
+  const recapFresh =
+    lastChat?.recap && lastChat?.at && Date.now() - lastChat.at < RECAP_MAX_AGE_MS
+  const referenceLine =
+    recapFresh && Math.random() < RECAP_REF_CHANCE
+      ? `Last time you two were chatting about: "${lastChat.recap}". You MAY nod to that lightly and naturally, but keep it a short friendly hello — don't quiz them or list it.`
+      : 'Do NOT reference past conversations — just a fresh, friendly hello.'
   const prompt = `You are the user's warm, funny buddy who is helping a native Tamil speaker learn
 Hindi. Write ONE short, casual WhatsApp-style opener that nudges them to come chat — like a friend
 texting out of the blue. Rules: mostly English, ONE short sentence (max ~12 words), warm and light,
-at most one emoji, casual lowercase is fine. It's ${timeOfDay(hour)} for them. ${nameLine} Do NOT
-mention notifications, apps, lessons, streaks, reminders, or "practice". Just say hi like a friend
-and invite a quick chat. You may sprinkle at most one very common Hindi word. Output ONLY the message.`
+at most one emoji, casual lowercase is fine. It's ${timeOfDay(hour)} for them. ${nameLine} ${referenceLine}
+Do NOT mention notifications, apps, lessons, streaks, reminders, or "practice". Just say hi like a
+friend and invite a quick chat. You may sprinkle at most one very common Hindi word. Output ONLY the message.`
 
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`
@@ -144,7 +153,7 @@ export default async function handler(req, res) {
           }
         }
 
-        const body = await generateMessage({ firstName: user.firstName, hour })
+        const body = await generateMessage({ firstName: user.firstName, hour, lastChat: push.lastChat })
         try {
           await webpush.sendNotification(
             push.subscription,

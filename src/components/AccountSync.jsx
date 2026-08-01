@@ -14,7 +14,7 @@ import { useStore } from '../state/store.jsx'
 //  - While signed in, push later local changes (buddy nudges) up to the account.
 export default function AccountSync() {
   const { isLoaded, isSignedIn, user } = useUser()
-  const { proficiency, setProficiency } = useStore()
+  const { proficiency, setProficiency, lastRecap } = useStore()
   const hydrated = useRef(false)
 
   // One-time reconcile per sign-in.
@@ -66,6 +66,26 @@ export default function AccountSync() {
       })
       .catch(() => {})
   }, [isLoaded, isSignedIn, user])
+
+  // Sync the rolling chat recap to the account (only when pings are on — that's the only
+  // consumer). Debounced; a later push ping references it sometimes.
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user || !lastRecap) return
+    const push = user.unsafeMetadata?.push
+    if (!push?.enabled) return
+    if (push.lastChat?.recap === lastRecap) return
+    const t = setTimeout(() => {
+      user
+        .update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            push: { ...push, lastChat: { recap: lastRecap, at: Date.now() } },
+          },
+        })
+        .catch(() => {})
+    }, 1000)
+    return () => clearTimeout(t)
+  }, [lastRecap, isLoaded, isSignedIn, user])
 
   return null
 }

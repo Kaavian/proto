@@ -26,6 +26,7 @@ export function StoreProvider({ children }) {
   const [history, setHistory] = useState(loadHistory)
   const [streak, setStreak] = useState(loadStreak)
   const [progress, setProgress] = useState(loadProgress) // { proficiency } — hidden
+  const [lastRecap, setLastRecap] = useState('') // one-line chat summary → synced to account for pings
 
   // Persist on change.
   useEffect(() => saveSettings(settings), [settings])
@@ -132,6 +133,8 @@ export function StoreProvider({ children }) {
       proficiency: progress.proficiency,
       adjustProficiency,
       setProficiency,
+      lastRecap,
+      setLastRecap,
     }),
     [
       settings,
@@ -150,6 +153,7 @@ export function StoreProvider({ children }) {
       progress.proficiency,
       adjustProficiency,
       setProficiency,
+      lastRecap,
     ],
   )
 

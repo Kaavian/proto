@@ -36,8 +36,16 @@ function ChatGate(props) {
 }
 
 function ChatExperience({ goTo }) {
-  const { settings, addVocab, isSaved, reinforceUsedWords, markActivity, proficiency, adjustProficiency } =
-    useStore()
+  const {
+    settings,
+    addVocab,
+    isSaved,
+    reinforceUsedWords,
+    markActivity,
+    proficiency,
+    adjustProficiency,
+    setLastRecap,
+  } = useStore()
   const [messages, setMessages] = useState(() => loadChat()?.messages || [])
   const [started, setStarted] = useState(false)
   const [input, setInput] = useState('')
@@ -82,13 +90,14 @@ function ChatExperience({ goTo }) {
         ])
         markActivity()
         adjustProficiency(reply.progressDelta) // silent background tracking
+        if (reply.recap) setLastRecap(reply.recap) // synced to account for personalized pings
       } catch (e) {
         setError(e instanceof GeminiError ? e.message : 'Something went wrong. Try again.')
       } finally {
         setLoading(false)
       }
     },
-    [settings, markActivity, proficiency, adjustProficiency],
+    [settings, markActivity, proficiency, adjustProficiency, setLastRecap],
   )
 
   function startNew() {
