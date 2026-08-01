@@ -16,9 +16,22 @@ const TABS = [
   { key: 'settings', label: 'Settings', Icon: SettingsIcon },
 ]
 
+const VALID_TABS = ['translate', 'learn', 'vocab', 'settings']
+// Notifications open the app at /?tab=chat — honor that on first load.
+function initialTab() {
+  try {
+    const t = new URLSearchParams(window.location.search).get('tab')
+    if (t === 'chat') return 'learn'
+    if (VALID_TABS.includes(t)) return t
+  } catch {
+    /* ignore */
+  }
+  return 'translate'
+}
+
 export default function App() {
   const { settings, streak, vocab } = useStore()
-  const [tab, setTab] = useState('translate')
+  const [tab, setTab] = useState(initialTab)
 
   // First-launch: ask speaker gender once (PRD §6.3).
   if (!settings.gender) {

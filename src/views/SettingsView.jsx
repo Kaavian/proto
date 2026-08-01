@@ -3,6 +3,14 @@ import { useUser, useClerk } from '@clerk/react'
 import { useStore } from '../state/store.jsx'
 import { DEFAULT_KEEP_IN_ENGLISH } from '../lib/defaults.js'
 import { authEnabled } from '../lib/auth.js'
+import {
+  pushSupported,
+  pushConfigured,
+  notificationPermission,
+  enablePush,
+  disablePush,
+  browserTimeZone,
+} from '../lib/push.js'
 import { useInstall } from '../hooks/useInstall.js'
 
 export default function SettingsView() {
@@ -28,6 +36,7 @@ export default function SettingsView() {
   return (
     <div className="scroll-slim h-full overflow-y-auto px-4 pb-8 pt-3">
       {authEnabled() && <AccountSection />}
+      {authEnabled() && <NudgeSection />}
       <InstallSection />
 
       {/* API key */}
@@ -222,6 +231,105 @@ function AccountSection() {
           Sign out
         </button>
       </div>
+    </Section>
+  )
+}
+
+// Buddy pings — opt-in Web Push. Only mounted when auth is enabled (needs Clerk + an account,
+// since the subscription is stored per-account and the server sends to it on a schedule).
+function NudgeSection() {
+  const { isLoaded, isSignedIn, user } = useUser()
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  if (!isLoaded) return null
+
+  if (!pushSupported() || !pushConfigured()) {
+    if (!isSignedIn) return null
+    return (
+      <Section title="Buddy pings" subtitle="Friendly nudges to come back and chat">
+        <p className="rounded-xl bg-white px-3.5 py-3 text-[13px] leading-relaxed text-ink/55 ring-1 ring-ink/10">
+          {!pushConfigured()
+            ? 'Not switched on yet — the app owner needs to add a notification key.'
+            : 'This device can’t show notifications yet. On iPhone, install Proto to your home screen first (Settings → Install), then come back.'}
+        </p>
+      </Section>
+    )
+  }
+
+  if (!isSignedIn) {
+    return (
+      <Section title="Buddy pings" subtitle="Friendly nudges to come back and chat">
+        <p className="rounded-xl bg-white px-3.5 py-3 text-[13px] leading-relaxed text-ink/55 ring-1 ring-ink/10">
+          Sign in from the <span className="font-semibold text-ink/80">Chat</span> tab to turn on
+          buddy pings.
+        </p>
+      </Section>
+    )
+  }
+
+  const push = user.unsafeMetadata?.push || {}
+  const enabled = !!push.enabled
+  const freq = push.freq || 5
+  const denied = notificationPermission() === 'denied'
+
+  async function writePush(patch) {
+    await user.update({
+      unsafeMetadata: { ...user.unsafeMetadata, push: { ...push, ...patch, updatedAt: Date.now() } },
+    })
+  }
+
+  async function toggle(next) {
+    if (busy) return
+    setErr('')
+    setBusy(true)
+    try {
+      if (next) {
+        const subscription = await enablePush()
+        await writePush({ enabled: true, subscription, tz: browserTimeZone(), freq })
+      } else {
+        await disablePush()
+        await writePush({ enabled: false })
+      }
+    } catch (e) {
+      setErr(
+        {
+          denied: 'Notifications are blocked — allow them for Proto in your browser settings.',
+          unsupported: 'This device can’t show notifications.',
+          'not-configured': 'Not switched on yet (missing notification key).',
+        }[e.message] || 'Could not update pings. Try again.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Section title="Buddy pings" subtitle="Your buddy messages you a few times a day, like a friend">
+      <Toggle checked={enabled} onChange={toggle} label="Daily buddy pings" />
+      {denied && (
+        <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[12px] leading-relaxed text-amber-800">
+          Notifications are blocked in your browser — unblock Proto to turn these on.
+        </p>
+      )}
+      {enabled && (
+        <div className="mt-3">
+          <p className="mb-1.5 text-[13px] text-ink/50">How often</p>
+          <Segmented
+            value={String(freq)}
+            onChange={(v) => writePush({ freq: Number(v) }).catch(() => {})}
+            options={[
+              { value: '3', label: 'A few' },
+              { value: '5', label: 'Normal' },
+              { value: '8', label: 'Lots' },
+            ]}
+          />
+        </div>
+      )}
+      {err && <p className="mt-2 text-[13px] text-red-500">{err}</p>}
+      <p className="mt-2 text-[12px] leading-relaxed text-ink/40">
+        Quiet overnight, and skipped when you’ve just chatted. Turn off anytime.
+      </p>
     </Section>
   )
 }

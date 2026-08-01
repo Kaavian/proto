@@ -49,5 +49,23 @@ export default function AccountSync() {
     return () => clearTimeout(t)
   }, [proficiency, isLoaded, isSignedIn, user])
 
+  // Activity beacon: when pings are on, record "last active" so the server can skip
+  // messaging someone who's already in the app. Throttled to once per ~30 min.
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user) return
+    const push = user.unsafeMetadata?.push
+    if (!push?.enabled) return
+    const last = push.lastActiveAt || 0
+    if (Date.now() - last < 30 * 60 * 1000) return
+    user
+      .update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          push: { ...push, lastActiveAt: Date.now() },
+        },
+      })
+      .catch(() => {})
+  }, [isLoaded, isSignedIn, user])
+
   return null
 }

@@ -151,6 +151,48 @@ Yaar installs to the home screen and opens offline.
 
 Not yet done (optional Phase 2 extras): Devanagari display toggle, offline flashcard review of saved vocab.
 
+---
+
+## Buddy pings (daily push notifications)
+
+The buddy messages you like a friend — a few casual openers a day to pull you back for a short chat.
+It's **Web Push** (free; no per-message cost), gated behind a **sign-in** (pings are per-account) and
+an in-app opt-in (**Settings → Buddy pings**). On iPhone it only works once Proto is **installed to the
+home screen** (iOS 16.4+); Android/desktop Chrome work in-browser.
+
+**How it works** (no database):
+- The browser push subscription + prefs (on/off, frequency, timezone) live in the user's Clerk
+  `unsafeMetadata.push` (written client-side, `src/lib/push.js` + the Settings `NudgeSection`).
+- The service worker ([public/sw.js](public/sw.js)) renders `push` events as notifications; tapping one
+  opens the app at `/?tab=chat`.
+- An hourly **GitHub Actions** cron ([.github/workflows/nudge.yml](.github/workflows/nudge.yml)) hits the
+  secured endpoint ([api/nudge.js](api/nudge.js)). Per user, per their **local time**, it decides whether
+  this hour is one of their ~N daily pings — quiet overnight (9:00–21:00 window), skipped if they were
+  active < 2h ago, spread randomly via a reservoir probability — then writes a fresh casual opener with
+  **Gemini** and delivers it via `web-push`. Per-day scheduling state lives in Clerk `publicMetadata.pushState`.
+
+### Setup
+
+1. **Generate VAPID keys** once: `npx web-push generate-vapid-keys` → gives a public + private key.
+2. **Client env:** set `VITE_VAPID_PUBLIC_KEY` (the public key) in `.env.local` and in Vercel
+   (Production + Preview). It's browser-exposed, so `VITE_` is correct.
+3. **Server env (Vercel, no `VITE_` prefix):**
+   - `VAPID_PRIVATE_KEY` — the private key from step 1
+   - `VAPID_SUBJECT` — `mailto:you@example.com`
+   - `CLERK_SECRET_KEY` — Clerk dashboard → API Keys → **Secret key** (`sk_...`)
+   - `NUDGE_SECRET` — any long random string (protects the endpoint)
+   - `GEMINI_API_KEY` — already set (also writes the ping text)
+4. **GitHub Actions secrets** (repo → Settings → Secrets → Actions):
+   - `NUDGE_URL` = `https://<your-app>.vercel.app/api/nudge`
+   - `NUDGE_SECRET` = same value as the Vercel one
+5. **Test delivery:** opt in from Settings on an installed/HTTPS build, then hit the endpoint manually:
+   `curl -X POST "$NUDGE_URL?force=1" -H "x-nudge-secret: $NUDGE_SECRET"` — `?force=1` bypasses the
+   schedule and sends immediately to every opted-in subscription.
+
+> Notes: GitHub scheduled workflows can lag under load and pause after ~60 days of repo inactivity.
+> Each ping is a Gemini call (fine on the free tier for a small circle). Cross-device: pings go to
+> whichever device(s) opted in.
+
 ## Remaining from the PRD
 
 - **M5** — serverless key proxy + production deploy (see above). Note: to install the PWA on a phone it must be served from a live HTTPS URL, so this pairs with the deploy.

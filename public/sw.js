@@ -9,7 +9,7 @@
 //    to the network, and fail loudly offline, which is the correct behavior.
 //
 // Bump CACHE_VERSION to force old caches out on the next activate.
-const CACHE_VERSION = 'proto-v3'
+const CACHE_VERSION = 'proto-v4'
 const SHELL = [
   '/',
   '/index.html',
@@ -77,6 +77,46 @@ self.addEventListener('fetch', (event) => {
         }
         return res
       })
+    }),
+  )
+})
+
+// ---- Push notifications (the buddy's daily pings) ----
+// The server (api/nudge.js) sends a JSON payload; we render it as a notification.
+self.addEventListener('push', (event) => {
+  let data = {}
+  try {
+    data = event.data ? event.data.json() : {}
+  } catch {
+    data = { body: event.data ? event.data.text() : '' }
+  }
+  const title = data.title || 'Proto'
+  const body = data.body || 'Your Hindi buddy messaged you 👋'
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: data.tag || 'buddy-ping', // collapse stacked pings into one
+      renotify: true,
+      data: { url: data.url || '/?tab=chat' },
+    }),
+  )
+})
+
+// Tapping the notification focuses an open tab (or opens one) at the chat.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = event.notification.data?.url || '/?tab=chat'
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const c of clients) {
+        if ('focus' in c) {
+          if ('navigate' in c) c.navigate(target).catch(() => {})
+          return c.focus()
+        }
+      }
+      return self.clients.openWindow(target)
     }),
   )
 })
