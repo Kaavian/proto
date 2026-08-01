@@ -312,6 +312,35 @@ function BuddyTurn({ msg, onSave, isSaved }) {
   )
 }
 
+// Shared Tamil comparison: the romanized Tamil parallel + a word-by-word Hindi<->Tamil<->meaning
+// map. Used by both the "how do I say" breakdown and the quick-fix correction card.
+function HindiTamilMap({ tamil, pairs }) {
+  if (!tamil && !(pairs && pairs.length)) return null
+  return (
+    <>
+      {tamil && (
+        <p className="mt-1 text-[14px] text-ink/60">
+          <span className="mr-1 text-[11px] font-bold uppercase tracking-wide text-emerald-600">
+            Tamil
+          </span>
+          {tamil}
+        </p>
+      )}
+      {pairs && pairs.length > 0 && (
+        <ul className="mt-2 divide-y divide-ink/5 border-t border-ink/5">
+          {pairs.map((p, i) => (
+            <li key={i} className="flex items-baseline gap-2 py-1.5 text-[13px]">
+              <span className="hinglish min-w-0 flex-1 font-semibold text-ink">{p.hindi}</span>
+              <span className="min-w-0 flex-1 text-emerald-700">{p.tamil}</span>
+              <span className="min-w-0 flex-1 text-right text-ink/50">{p.means}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  )
+}
+
 // Tamil-anchored "how do I say" card: the Hindi answer, its Tamil parallel, a word-by-word
 // Hindi<->Tamil map, and why the two are structurally similar.
 function BreakdownCard({ b, onSave, saved }) {
@@ -334,24 +363,7 @@ function BreakdownCard({ b, onSave, saved }) {
       {b.english && <p className="mt-1.5 text-[13px] italic text-ink/45">“{b.english}”</p>}
 
       <p className="hinglish mt-1 text-xl font-bold leading-tight text-ink">{b.hindi}</p>
-      {b.tamil && (
-        <p className="mt-1 text-[14px] text-ink/60">
-          <span className="mr-1 text-[11px] font-bold uppercase tracking-wide text-emerald-600">Tamil</span>
-          {b.tamil}
-        </p>
-      )}
-
-      {b.pairs.length > 0 && (
-        <ul className="mt-2.5 divide-y divide-ink/5 border-t border-ink/5">
-          {b.pairs.map((p, i) => (
-            <li key={i} className="flex items-baseline gap-2 py-1.5 text-[13px]">
-              <span className="hinglish min-w-0 flex-1 font-semibold text-ink">{p.hindi}</span>
-              <span className="min-w-0 flex-1 text-emerald-700">{p.tamil}</span>
-              <span className="min-w-0 flex-1 text-right text-ink/50">{p.means}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <HindiTamilMap tamil={b.tamil} pairs={b.pairs} />
 
       {b.similarity && (
         <p className="mt-2 rounded-lg bg-emerald-50/70 px-2.5 py-2 text-[13px] leading-relaxed text-emerald-900/80">
@@ -386,6 +398,7 @@ function CorrectionCard({ c, onSave, saved }) {
       )}
       <p className="hinglish mt-1 text-[15px] font-bold text-ink">✅ {c.fix}</p>
       {c.why && <p className="mt-1 text-[13px] leading-relaxed text-ink/60">{c.why}</p>}
+      <HindiTamilMap tamil={c.tamil} pairs={c.pairs} />
     </div>
   )
 }

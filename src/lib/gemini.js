@@ -235,6 +235,12 @@ export async function chatWithBuddy(history, settings, { kickoff = false, progre
           literal: result.correction.literal || '',
           fix: result.correction.fix || '',
           why: result.correction.why || '',
+          tamil: result.correction.tamil || '',
+          pairs: Array.isArray(result.correction.pairs)
+            ? result.correction.pairs
+                .filter((p) => p && (p.hindi || p.tamil))
+                .map((p) => ({ hindi: p.hindi || '', tamil: p.tamil || '', means: p.means || '' }))
+            : [],
         }
       : null
 
