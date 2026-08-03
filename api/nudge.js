@@ -92,28 +92,6 @@ friend and invite a quick chat. You may sprinkle at most one very common Hindi w
 }
 
 export default async function handler(req, res) {
-  // TEMP diagnostic (?debug=1): reports whether env vars are present + lengths only — never the
-  // secret values. Remove once buddy pings are confirmed working.
-  if (req.query?.debug === '1') {
-    const s = process.env.NUDGE_SECRET
-    const p = req.headers['x-nudge-secret'] || req.query?.secret || ''
-    return res.status(200).json({
-      debug: true,
-      NUDGE_SECRET_set: !!s,
-      NUDGE_SECRET_len: s ? s.length : 0,
-      provided_len: p.length,
-      matches: !!s && p === s,
-      env_present: {
-        VAPID_PUBLIC_KEY: !!process.env.VAPID_PUBLIC_KEY,
-        VITE_VAPID_PUBLIC_KEY: !!process.env.VITE_VAPID_PUBLIC_KEY,
-        VAPID_PRIVATE_KEY: !!process.env.VAPID_PRIVATE_KEY,
-        VAPID_SUBJECT: !!process.env.VAPID_SUBJECT,
-        CLERK_SECRET_KEY: !!process.env.CLERK_SECRET_KEY,
-        GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
-      },
-    })
-  }
-
   // Auth: shared secret via header or query.
   const secret = process.env.NUDGE_SECRET
   const provided = req.headers['x-nudge-secret'] || req.query?.secret
