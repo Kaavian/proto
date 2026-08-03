@@ -105,6 +105,7 @@ export default async function handler(req, res) {
       matches: !!s && p === s,
       env_present: {
         VAPID_PUBLIC_KEY: !!process.env.VAPID_PUBLIC_KEY,
+        VITE_VAPID_PUBLIC_KEY: !!process.env.VITE_VAPID_PUBLIC_KEY,
         VAPID_PRIVATE_KEY: !!process.env.VAPID_PRIVATE_KEY,
         VAPID_SUBJECT: !!process.env.VAPID_SUBJECT,
         CLERK_SECRET_KEY: !!process.env.CLERK_SECRET_KEY,
@@ -120,9 +121,17 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'unauthorized' })
   }
 
-  const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, CLERK_SECRET_KEY } = process.env
+  // The public key is safe to expose, so accept either the server name or the client's VITE_ one.
+  const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY
+  const { VAPID_PRIVATE_KEY, VAPID_SUBJECT, CLERK_SECRET_KEY } = process.env
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY || !VAPID_SUBJECT || !CLERK_SECRET_KEY) {
-    return res.status(500).json({ error: 'missing env (VAPID_* / VAPID_SUBJECT / CLERK_SECRET_KEY)' })
+    const missing = [
+      !VAPID_PUBLIC_KEY && 'VAPID_PUBLIC_KEY (or VITE_VAPID_PUBLIC_KEY)',
+      !VAPID_PRIVATE_KEY && 'VAPID_PRIVATE_KEY',
+      !VAPID_SUBJECT && 'VAPID_SUBJECT',
+      !CLERK_SECRET_KEY && 'CLERK_SECRET_KEY',
+    ].filter(Boolean)
+    return res.status(500).json({ error: 'missing env', missing })
   }
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
   const clerk = createClerkClient({ secretKey: CLERK_SECRET_KEY })
