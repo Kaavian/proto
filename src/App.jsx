@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import { useStore } from './state/store.jsx'
 import { authEnabled } from './lib/auth.js'
 import Onboarding from './components/Onboarding.jsx'
@@ -91,6 +92,7 @@ export default function App() {
           )
         })}
       </nav>
+      <Analytics />
     </div>
   )
 }
